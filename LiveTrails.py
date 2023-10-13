@@ -1,7 +1,6 @@
 import os
 import cv2
 from PIL import Image, ImageTk
-import time
 import tkinter as tk
 from tkinter import filedialog
 from LiveTrails import *
@@ -10,15 +9,12 @@ root = tk.Tk()
 prevStacked = False
 runB = False
 file = ''
-read = []
-tempImg = []
+read = ['temp.jpg']
 width = root.winfo_screenwidth()               
 height = root.winfo_screenheight()
 cwidth = width-300
 cheight = height
 startB,stopB = '',''
-
-
 iwidth=0
 iheight=0 
 root.geometry("%dx%d" % (width, height))      
@@ -38,7 +34,6 @@ def load(fileList, filePath):
         end = files[length-3:length]
 
         if end == "jpg":
-            print(filePath)
             image = cv2.imread(filePath + "\\" + files)
             imageArray.append(image)
 
@@ -54,8 +49,8 @@ def lighten(images):
     iwidth, iheight = images[0].shape[:2]
     i = 0
 
-    for x in range(0,width):
-        for y in range(0,height):
+    for x in range(0,iwidth):
+        for y in range(0,iheight):
             max = 0
             for i in range(0,len(images)):
                 if imageGray[i][x][y] > imageGray[max][x][y]:
@@ -90,14 +85,11 @@ def stack(filePath, read):
 #checks for new files
 def check(filePath, read):
     currentFiles = scan(filePath)
-    print(file)
-    print(read)
-    print(currentFiles)
-
     #we have a new file
     if currentFiles != read:
         print("new files")
         stack(filePath, read)
+        disp()
         read = currentFiles
     else:
         print("No new files")
@@ -107,14 +99,13 @@ def run():
     global read, runB
     if runB:
         read = check(file, read)
-    root.after(50000, run)
+    root.after(5000, run)
     
 def fileExplorer():
     global file
     file = tk.filedialog.askdirectory()
     if file != '':
-        startB['state']="normal"
-        
+        startB['state']="normal"      
 
 def start():
     global tempImg, runB, file
@@ -122,12 +113,15 @@ def start():
     startB['state']="disabled"
     stopB['state']="normal"
     run()
-    print("beep")
+    disp()
+
+def disp():
+    global file,tempImg
     sWidth = cwidth
     sHeight = round(cwidth/iheight*iwidth)
     tempImg = ImageTk.PhotoImage(Image.open(file+"\\temp.jpg").resize((sWidth,sHeight), Image.ANTIALIAS))
     canvas.create_image(0,0, anchor="nw", image=tempImg)
-
+    
 def stop():
     global runB
     runB = False
@@ -151,7 +145,7 @@ controls.pack(side="left", anchor="nw")
 #image
 canvas.pack()
 
-tk.Label(root, image=tempImg).pack()
+
 
 # console
 console = tk.Frame(root)
@@ -164,5 +158,3 @@ startB["state"] = 'disabled'
 
 root.after(5000, run)
 root.mainloop()
-
-#USE AFTER FOR LOOPING FUCTION
